@@ -27,12 +27,12 @@ export async function POST(req: NextRequest) {
       const sheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-      // Excel faylında başlıqlar belə olmalıdır: sual, A, B, C, D, cavab
-      for (const row: any of jsonData) {
+      // DÜZƏLİŞ: `jsonData` massivini 'any[]' kimi göstəririk
+      for (const row of jsonData as any[]) {
         if (row.sual && row.cavab) {
           await supabase.from('questions').insert({
             content: row.sual,
-            options: [row.A, row.B, row.C, row.D], // Variantlar array kimi
+            options: [row.A, row.B, row.C, row.D], // Variantlar
             correct_answer: row.cavab
           });
         }
@@ -40,15 +40,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: 'Excel yükləndi' });
     }
 
-    // 2. WORD Ssenarisi (Sadə mətn kimi)
+    // 2. WORD Ssenarisi
     if (fileType === 'docx') {
       const result = await mammoth.extractRawText({ buffer });
       const text = result.value;
-      // Word-də hər yeni sətiri bir sual kimi qəbul edirik (Demo)
       const lines = text.split('\n').filter(l => l.length > 5);
       
       for (const line of lines) {
-         // Avtomatik demo sual yaradır (Təkmilləşdirmək olar)
          await supabase.from('questions').insert({
             content: line,
             options: ["Bəli", "Xeyr", "Variant C", "Variant D"],
@@ -56,6 +54,22 @@ export async function POST(req: NextRequest) {
          });
       }
       return NextResponse.json({ success: true, message: 'Word yükləndi' });
+    }
+
+    // 3. PDF Ssenarisi
+    if (fileType === 'pdf') {
+        const data = await pdf(buffer);
+        const text = data.text;
+        const lines = text.split('\n').filter((l: string) => l.length > 5);
+        
+        for (const line of lines) {
+           await supabase.from('questions').insert({
+              content: line,
+              options: ["Bəli", "Xeyr", "Variant C", "Variant D"],
+              correct_answer: "Bəli"
+           });
+        }
+        return NextResponse.json({ success: true, message: 'PDF yükləndi' });
     }
 
     return NextResponse.json({ success: false, error: 'Format dəstəklənmir' });
