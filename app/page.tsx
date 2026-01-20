@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Shield } from 'lucide-react';
+import { User, ArrowRight, Sparkles } from 'lucide-react';
 
 export default function Home() {
   const [nickname, setNickname] = useState('');
@@ -15,39 +15,62 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700">
-        <h1 className="text-3xl font-bold text-center mb-2 text-blue-400">İmtahan Sistemi</h1>
-        <p className="text-gray-400 text-center mb-8">Başlamaq üçün adınızı daxil edin</p>
-        
-        <div className="space-y-4">
-          <div className="relative">
-            <User className="absolute left-3 top-3.5 w-5 h-5 text-gray-500" />
-            <input
-              type="text"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="w-full pl-10 p-3 rounded-lg bg-slate-900 border border-slate-600 focus:border-blue-500 outline-none text-white"
-              placeholder="Ad və Soyad"
-            />
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#0f172a] overflow-hidden px-4 sm:px-6 lg:px-8 relative">
+      
+      {/* Arxa Fon Effektləri (Gözəllik üçün) */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute -top-[20%] -left-[10%] w-[70vw] h-[70vw] bg-blue-600/20 rounded-full blur-[100px] opacity-50 animate-pulse" />
+        <div className="absolute top-[40%] -right-[10%] w-[60vw] h-[60vw] bg-purple-600/20 rounded-full blur-[100px] opacity-40" />
+      </div>
+
+      <div className="w-full max-w-md z-10">
+        {/* Kart Dizaynı */}
+        <div className="backdrop-blur-2xl bg-white/5 border border-white/10 shadow-2xl rounded-3xl p-6 sm:p-10 transition-all duration-300 hover:border-white/20">
+          
+          <div className="text-center mb-8 sm:mb-10">
+            <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 mb-4 shadow-lg shadow-blue-500/30 transform transition hover:scale-105">
+              <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+            </div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+              İmtahan Platforması
+            </h1>
+            <p className="text-slate-400 mt-3 text-sm sm:text-base font-medium">
+              Uğura gedən yol buradan başlayır
+            </p>
           </div>
           
-          <button
-            onClick={handleStudentStart}
-            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all active:scale-95"
-          >
-            İmtahana Başla
-          </button>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">
+                İstifadəçi Adı
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  className="block w-full pl-11 pr-4 py-4 bg-slate-900/60 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all sm:text-sm"
+                  placeholder="Ad və Soyad"
+                />
+              </div>
+            </div>
+            
+            <button
+              onClick={handleStudentStart}
+              className="w-full group relative flex justify-center items-center py-4 px-4 border border-transparent text-sm sm:text-base font-bold rounded-xl text-white bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-[#0f172a] transition-all duration-200 shadow-lg shadow-blue-600/20 active:scale-[0.98]"
+            >
+              İmtahana Başla
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
         </div>
-
-        <div className="mt-8 pt-6 border-t border-slate-700 text-center">
-          <button 
-            onClick={() => router.push('/login')}
-            className="text-sm text-gray-500 hover:text-gray-300 flex items-center justify-center gap-2 mx-auto"
-          >
-            <Shield className="w-4 h-4" /> Müəllim / Admin Girişi
-          </button>
-        </div>
+        
+        <p className="text-center text-slate-600 text-xs mt-8 font-medium">
+          © 2026 Bütün hüquqlar qorunur
+        </p>
       </div>
     </div>
   );
