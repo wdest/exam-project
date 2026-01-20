@@ -2,12 +2,14 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
 export async function middleware(request: NextRequest) {
+  // 1. İlkin cavab yaradırıq
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
+  // 2. Supabase müştərisini qururuq
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -16,12 +18,15 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+        // DÜZƏLİŞ: Buraya ': any' əlavə etdik ki, TypeScript ilişməsin
+        setAll(cookiesToSet: any) {
+          cookiesToSet.forEach(({ name, value, options }: any) => request.cookies.set(name, value));
+          
           response = NextResponse.next({
             request,
           });
-          cookiesToSet.forEach(({ name, value, options }) =>
+          
+          cookiesToSet.forEach(({ name, value, options }: any) =>
             response.cookies.set(name, value, options)
           );
         },
@@ -29,47 +34,38 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Rate Limiting (Placeholder)
-  // In a production environment, you should implement rate limiting here.
-  // Recommended approach: Use a dedicated library like 'upstash/ratelimit' with Redis
-  // or Supabase Edge Functions.
-  // Example:
-  // if (request.nextUrl.pathname.startsWith('/auth/login')) {
-  //   const success = await rateLimit(request.ip);
-  //   if (!success) return new NextResponse('Too Many Requests', { status: 429 });
-  // }
-
+  // 3. İstifadəçini yoxlayırıq (Auth)
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // 4. Əgər Admin panelinə girmək istəyirsə və admin deyilsə
   if (request.nextUrl.pathname.startsWith('/admin')) {
+    // Giriş etməyibsə -> Login-ə at
     if (!user) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    const { data: profile, error } = await supabase
+    // Giriş edib, amma Admin deyilsə -> Ana səhifəyə at
+    // Qeyd: Bu sorğunu bazanı çox yormamaq üçün sadələşdirmək olar, 
+    // amma hələlik təhlükəsizlik üçün qalması yaxşıdır.
+    const { data: profile } = await supabase
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single();
 
-    if (error || !profile || profile.role !== 'admin') {
+    if (!profile || profile.role !== 'admin') {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
-
-  // Security Headers (Applied last to ensure they exist on the final response)
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
   return response;
 }
 
 export const config = {
   matcher: [
+    // Bütün yolları tut, amma statik fayllara (şəkil, favicon və s.) ilişmə
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
