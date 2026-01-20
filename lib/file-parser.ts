@@ -1,4 +1,4 @@
-import pdf from 'pdf-parse';
+const pdf = require('pdf-parse');
 import * as XLSX from 'xlsx';
 import mammoth from 'mammoth';
 
